@@ -52,8 +52,11 @@ Implements GPU-driven occlusion culling using a depth pyramid—the same techniq
 Every frame, each grass blade goes through a **GPU-side culling gauntlet**:
 
 **Stage 1: Density Map Filtering** (CSMain)
+
 **Stage 2: Frustum Culling** (CSCull)
+
 **Stage 3: Distance-Based Density Scaling** (CSCull)
+
 **Stage 4: HiZ Occlusion Test** (CSCull)
 
 ---
