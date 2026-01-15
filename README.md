@@ -163,5 +163,3 @@ GrassRenderer (MonoBehaviour)
 - [Ned Makes Games - Intro to Compute Shaders](https://www.youtube.com/watch?v=EB5HiqDl7VE)
 - [Ronja Tutorials - Graphics.DrawProcedural](https://www.ronja-tutorials.com/post/051-draw-procedural/)
 - [SimonDev - How do Major Video Games Render Grass?](https://www.youtube.com/watch?v=bp7REZBV4P4&t=398s)
-
----
