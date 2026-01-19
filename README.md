@@ -154,6 +154,20 @@ GrassRenderer (MonoBehaviour)
 - Deep dives: [Documentation/Feature_GPU_Architecture.md](Grass/Documentation/Feature_GPU_Architecture.md) · [Documentation/Feature_HiZ_Occlusion.md](Grass/Documentation/Feature_HiZ_Occlusion.md) · [Documentation/Feature_LOD_and_Density.md](Grass/Documentation/Feature_LOD_and_Density.md) · [Documentation/Feature_Wind_and_Shading.md](Grass/Documentation/Feature_Wind_and_Shading.md) · [Documentation/Feature_Painting_and_Tools.md](Grass/Documentation/Feature_Painting_and_Tools.md) · [Documentation/Feature_Debugging_and_Troubleshooting.md](Grass/Documentation/Feature_Debugging_and_Troubleshooting.md)
 
 ---
+
+## Roadmap & Future Plans
+We are actively working towards v1.0 to make this a production-ready open-source alternative. Our primary goals are matching commercial asset performance and adding HDRP/Built-in support.
+👉 **[View the detailed V1.0 Roadmap](ROADMAP_V1.0.md)**
+
+## Contributing
+Contributions are extremely welcome! We are looking for help with:
+- Compute shader optimizations
+- HDRP and Built-in Render Pipeline integration
+- Tooling and Editor improvements
+
+Please check the [Roadmap](ROADMAP_V1.0.md) for current priorities. Feel free to open issues or submit Pull Requests.
+
+---
 ## Resources
 
 - [Procedural Grass in 'Ghost of Tsushima](https://www.youtube.com/watch?v=Ibe1JBF5i5Y)
