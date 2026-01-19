@@ -160,12 +160,9 @@ We are actively working towards v1.0 to make this a production-ready open-source
 👉 **[View the detailed V1.0 Roadmap](ROADMAP_V1.0.md)**
 
 ## Contributing
-Contributions are extremely welcome! We are looking for help with:
-- Compute shader optimizations
-- HDRP and Built-in Render Pipeline integration
-- Tooling and Editor improvements
+This is an open project and we welcome all contributions! Whether it's performance optimizations, new render pipeline support, or documentation fixes.
 
-Please check the [Roadmap](ROADMAP_V1.0.md) for current priorities. Feel free to open issues or submit Pull Requests.
+👉 **Please read our [Contribution Guide](CONTRIBUTING.md) to get started.**
 
 ---
 ## Resources
