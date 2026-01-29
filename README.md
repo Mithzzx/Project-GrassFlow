@@ -157,12 +157,17 @@ GrassRenderer (MonoBehaviour)
 
 ## Roadmap & Future Plans
 We are actively working towards v1.0 to make this a production-ready open-source alternative. Our primary goals are matching commercial asset performance and adding HDRP/Built-in support.
-👉 **[View the detailed V1.0 Roadmap](ROADMAP_V1.0.md)**
+👉 **[View the detailed V1.0 Roadmap](ROADMAP.md)**
 
 ## Contributing
 This is an open project and we welcome all contributions! Whether it's performance optimizations, new render pipeline support, or documentation fixes.
 
-👉 **Please read our [Contribution Guide](CONTRIBUTING.md) to get started.**
+To contribute:
+1. Check the [Roadmap](ROADMAP.md) and [Issues](../../issues) for priority tasks.
+2. Fork the repository and create a branch for your feature.
+3. Submit a Pull Request with a clear description and benchmark numbers if improving performance.
+
+Current focus areas: Compute Shader optimizations, Render Pipeline support (HDRP/Built-in), and Tooling improvements.
 
 ---
 ## Resources
