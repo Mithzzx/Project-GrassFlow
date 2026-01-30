@@ -52,6 +52,14 @@ Shader "Custom/GrassShader"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
         
         // Data Structures
+        struct GrassDataPacked
+        {
+            float3 position;
+            uint facing;
+            uint heightWidth;
+            uint windStiffness;
+        };
+
         struct GrassData
         {
             float3 position;
@@ -61,6 +69,25 @@ Shader "Custom/GrassShader"
             float stiffness;
             float widthScale;
         };
+
+        GrassData UnpackGrassData(GrassDataPacked packedData)
+        {
+            GrassData d;
+            d.position = packedData.position;
+            
+            uint f = packedData.facing;
+            d.facing = float2(f16tof32(f), f16tof32(f >> 16));
+            
+            uint hw = packedData.heightWidth;
+            d.height = f16tof32(hw);
+            d.widthScale = f16tof32(hw >> 16);
+            
+            uint ws = packedData.windStiffness;
+            d.windPhase = f16tof32(ws);
+            d.stiffness = f16tof32(ws >> 16);
+            
+            return d;
+        }
         
         // Variables
         TEXTURE2D(_WindMap);
@@ -94,7 +121,7 @@ Shader "Custom/GrassShader"
         CBUFFER_END
         
         #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-            StructuredBuffer<GrassData> _GrassDataBuffer;
+            StructuredBuffer<GrassDataPacked> _GrassDataBuffer;
         #endif
 
         // Helper Functions
@@ -238,7 +265,8 @@ Shader "Custom/GrassShader"
         void setup()
         {
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-                GrassData grass = _GrassDataBuffer[unity_InstanceID];
+                GrassDataPacked packedData = _GrassDataBuffer[unity_InstanceID];
+                GrassData grass = UnpackGrassData(packedData);
                 
                 float2 facing = grass.facing;
 
@@ -330,7 +358,8 @@ Shader "Custom/GrassShader"
                 float3 normalOS = input.normalOS;
                 
                 #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-                    GrassData grass = _GrassDataBuffer[unity_InstanceID];
+                    GrassDataPacked packedData = _GrassDataBuffer[unity_InstanceID];
+                    GrassData grass = UnpackGrassData(packedData);
                     CalculateGrassVertex(posOS, normalOS, input.uv, grass);
                 #endif
                 
@@ -523,7 +552,8 @@ Shader "Custom/GrassShader"
                 float3 normalOS = input.normalOS;
                 
                 #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-                    GrassData grass = _GrassDataBuffer[unity_InstanceID];
+                    GrassDataPacked packedData = _GrassDataBuffer[unity_InstanceID];
+                    GrassData grass = UnpackGrassData(packedData);
                     CalculateGrassVertex(posOS, normalOS, input.uv, grass);
                 #endif
                 
@@ -604,7 +634,8 @@ Shader "Custom/GrassShader"
                 float3 normalOS = input.normalOS;
                 
                 #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-                    GrassData grass = _GrassDataBuffer[unity_InstanceID];
+                    GrassDataPacked packedData = _GrassDataBuffer[unity_InstanceID];
+                    GrassData grass = UnpackGrassData(packedData);
                     CalculateGrassVertex(posOS, normalOS, input.uv, grass);
                 #endif
                 

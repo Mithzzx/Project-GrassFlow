@@ -8,12 +8,21 @@
 struct GrassData
 {
     float3 position;
-    float height;
-    float2 facing;      // Direction the grass blade faces (for rotation)
-    float windPhase;    // Phase offset for wind animation
-    float stiffness;    // Wind resistance (0.8-1.0), lower = more flexible
-    float widthScale;   // Width multiplier for density scaling
+    uint facing;        // Packed float2
+    uint heightWidth;   // Packed float2 (height, widthScale)
+    uint windStiffness; // Packed float2 (windPhase, stiffness)
 };
+
+// Helper Functions for Packing
+uint PackHalf2(float2 v)
+{
+    return f32tof16(v.x) | (f32tof16(v.y) << 16);
+}
+
+float2 UnpackHalf2(uint v)
+{
+    return float2(f16tof32(v & 0xFFFF), f16tof32(v >> 16));
+}
 
 // Output buffer for grass positions
 RWStructuredBuffer<GrassData> grassDataBuffer;
@@ -124,6 +133,21 @@ float snoise(float2 v)
     return 130.0 * dot(m, g);
 }
 
+// Value Noise (Faster than Simplex)
+float valueNoise(float2 p)
+{
+    float2 i = floor(p);
+    float2 f = frac(p);
+    float2 u = f * f * (3.0 - 2.0 * f);
+    
+    float a = hash12(i);
+    float b = hash12(i + float2(1.0, 0.0));
+    float c = hash12(i + float2(0.0, 1.0));
+    float d = hash12(i + float2(1.0, 1.0));
+    
+    return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
+}
+
 // Fractal Brownian Motion for more detail
 float fbm(float2 p)
 {
@@ -132,7 +156,9 @@ float fbm(float2 p)
     float frequency = 1.0;
     for (int i = 0; i < 3; i++)
     {
-        value += amplitude * snoise(p * frequency);
+        // Using Value Noise instead of Simplex for performance
+        // Remap 0..1 to -1..1 to match snoise range roughly
+        value += amplitude * (valueNoise(p * frequency) * 2.0 - 1.0);
         amplitude *= 0.5;
         frequency *= 2.0;
     }
@@ -163,8 +189,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // Use exposed parameters for scale and strength
     float2 noisePos = basePos * _ClumpScale; 
     float2 clumpOffset = float2(
-        snoise(noisePos),
-        snoise(noisePos + 100.0)
+        valueNoise(noisePos) * 2.0 - 1.0,
+        valueNoise(noisePos + 100.0) * 2.0 - 1.0
     );
     
     float2 finalPos2D = basePos + jitter + (clumpOffset * _ClumpStrength);
@@ -217,22 +243,25 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // Randomize height slightly per blade, but respect the clump height
     // Use basePos for seed to avoid precision issues with large IDs
     float randomHeight = lerp(_MinHeight, _MaxHeight, hash12(basePos * 1.23 + 45.6));
-    grass.height = randomHeight * heightMultiplier;
+    float finalHeight = randomHeight * heightMultiplier;
     
     // Random Rotation (controlled by _AngleVariation)
     // Map hash (0..1) to (-0.5..0.5), then scale by variation and 2PI
     // If _AngleVariation is 1.0, range is -PI to +PI (full circle)
     // If _AngleVariation is 0.0, angle is 0.0 (aligned)
     float facingAngle = (hash12(basePos + 56.78) - 0.5) * _AngleVariation * 6.28318;
-    grass.facing = float2(cos(facingAngle), sin(facingAngle));
+    float2 facingDir = float2(cos(facingAngle), sin(facingAngle));
+    grass.facing = PackHalf2(facingDir);
     
     // Wind Phase
-    grass.windPhase = finalPos2D.x * 0.1 + finalPos2D.y * 0.1 + hash12(basePos + 78.9) * 0.5;
+    float windPhase = finalPos2D.x * 0.1 + finalPos2D.y * 0.1 + hash12(basePos + 78.9) * 0.5;
     
     // Stiffness - random value between 0.8 and 1.0 for wind resistance variation
-    grass.stiffness = 0.8 + hash12(basePos + 91.23) * 0.2;
+    float stiffness = 0.8 + hash12(basePos + 91.23) * 0.2;
+    grass.windStiffness = PackHalf2(float2(windPhase, stiffness));
     
-    grass.widthScale = 1.0;
+    float widthScale = 1.0;
+    grass.heightWidth = PackHalf2(float2(finalHeight, widthScale));
 
     grassDataBuffer[id.x] = grass;
 }
@@ -245,6 +274,11 @@ void CSCull(uint3 id : SV_DispatchThreadID)
 
     GrassData grass = _SourceGrassBuffer[id.x];
     float3 pos = grass.position;
+
+    // Unpack needed data
+    float2 hw = UnpackHalf2(grass.heightWidth);
+    float height = hw.x;
+    float widthScale = hw.y;
 
     // 1. Distance Check (Optimization: Check distance first to skip frustum calculations for far objects)
     float3 diff = pos - _CameraPosition;
@@ -276,15 +310,16 @@ void CSCull(uint3 id : SV_DispatchThreadID)
             // Compensate width for remaining blades
             // If density is 0.5 (50% blades), width should be 2.0 (200%)
             float targetWidthScale = 1.0 / max(0.001, density);
-            grass.widthScale = lerp(1.0, targetWidthScale, _WidthCompensation);
+            widthScale = lerp(1.0, targetWidthScale, _WidthCompensation);
+            grass.heightWidth = PackHalf2(float2(height, widthScale));
         }
     }
 
     // 2. Frustum Culling
     // Check a sphere around the grass blade
     // Center is at half height, radius is height
-    float3 center = pos + float3(0, grass.height * 0.5, 0);
-    float radius = grass.height; // Conservative radius
+    float3 center = pos + float3(0, height * 0.5, 0);
+    float radius = height; // Conservative radius
 
     bool visible = true;
     

@@ -91,15 +91,13 @@ public class GrassRenderer : MonoBehaviour
     // Grass data structure - must match compute shader
     private struct GrassData
     {
-        public Vector3 position;
-        public float height;
-        public Vector2 facing;
-        public float windPhase;
-        public float stiffness;
-        public float widthScale;
+        public Vector3 position;       // 12 bytes
+        public uint facing;            // 4 bytes (Packed half2)
+        public uint heightWidth;       // 4 bytes (Packed half2)
+        public uint windStiffness;     // 4 bytes (Packed half2)
         
-        // Size in bytes: 3*4 + 4 + 2*4 + 4 + 4 + 4 = 32 bytes
-        public static int Size => sizeof(float) * 9;
+        // Size in bytes: 12 + 4 + 4 + 4 = 24 bytes
+        public static int Size => 24;
     }
 
     private Bounds renderBounds;
